@@ -4,9 +4,5 @@ build:
     worker:
       dockerfile: Dockerfile
       target: builder 
-release:
-  image: worker
-  command:
-    - make up_migrate_prod
 run:
   web: /main
