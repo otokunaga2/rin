@@ -1,7 +1,7 @@
 FROM golang:1.15.6-alpine3.12 as builder
 
 RUN apk update \
-  && apk add --no-cache git curl \
+  && apk add --no-cache git curl build-essential \
   && go get -u github.com/cosmtrek/air \
   && chmod +x ${GOPATH}/bin/air
 
