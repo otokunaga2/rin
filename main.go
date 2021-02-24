@@ -14,6 +14,10 @@ func handler(w http.ResponseWriter, r *http.Request) {
     fmt.Fprintf(w, "Hello world!\n")
 }
 
+func healthzHandler(w http.ResponseWriter, r *http.Request) {
+    fmt.Fprintf(w, "Currently system is running \n")
+}
+
 func lineHandler(w http.ResponseWriter, r *http.Request) {
     bot, err := linebot.New(
 						os.Getenv("CHANNEL_SECRET"),
@@ -57,6 +61,7 @@ func main() {
     port, _ := strconv.Atoi(os.Args[1])
     fmt.Printf("Starting server at Port %d", port)
     http.HandleFunc("/", handler)
+    http.HandleFunc("/healthz", healthzHandler)
     http.HandleFunc("/callback", lineHandler)
     http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 }
