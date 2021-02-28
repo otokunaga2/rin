@@ -5,5 +5,5 @@ build:
       dockerfile: Dockerfile
       target: builder 
 run:
-  web: /main
   image: web
+  web: /main
