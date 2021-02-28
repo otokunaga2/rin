@@ -6,3 +6,4 @@ build:
       target: builder 
 run:
   web: /main
+  image: web 
