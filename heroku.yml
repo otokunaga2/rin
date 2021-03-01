@@ -6,5 +6,6 @@ build:
       target: builder 
 run:
   image: 
-    command: web /main
+    command:
+      - web /main
     image: web
