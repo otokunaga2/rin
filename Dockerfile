@@ -13,12 +13,14 @@ RUN go mod download
 
 COPY . .
 
-RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-w -s" -o main main.go
+RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-w -s" -o /main main.go
 
 # Run binary in Go container
 FROM alpine:3.12
-
-COPY --from=builder /app/main /app
-
+#
+COPY --from=builder /main .
+#
 ENV PORT=${PORT}
-CMD /app/main $PORT
+ENTRYPOINT ["/main"]
+#CMD /app/main $PORT
+#CMD /app/main $PORT
