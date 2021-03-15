@@ -41,7 +41,9 @@ func lineHandler(w http.ResponseWriter, r *http.Request) {
             switch message := event.Message.(type) {
             case *linebot.TextMessage:
                 if message.Text == "こんにちは" {
-									replyMessage := fmt.Sprintf("はい、こんにちは")
+			id := message.ID
+			log.Print("Logging id :", id)
+			replyMessage := fmt.Sprintf("はい、こんにちは")
                 	if _, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(replyMessage)).Do(); err != nil {
                 	    log.Print(err)
                 	}
