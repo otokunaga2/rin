@@ -43,6 +43,7 @@ func lineHandler(w http.ResponseWriter, r *http.Request) {
                 if message.Text == "こんにちは" {
 			id := message.ID
 			log.Print("Logging id :", id)
+			log.Print("Received From USER ID: ", event.Source.UserID)
 			replyMessage := fmt.Sprintf("はい、こんにちは")
                 	if _, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(replyMessage)).Do(); err != nil {
                 	    log.Print(err)
