@@ -1,15 +1,22 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
+	_ "github.com/lib/pq"
+	"github.com/line/line-bot-sdk-go/linebot"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
-
-	"github.com/line/line-bot-sdk-go/linebot"
 )
 
+func InitDb(db *sql.DB) {
+	if _, err := db.Exec("CREATE TABLE IF NOT EXISTS user_utterances(utterance varchar(10000), recorded_at timestamp)"); err != nil {
+		log.Fatal(err)
+		return
+	}
+}
 func handler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hello world!\n")
 }
@@ -59,6 +66,13 @@ func lineHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	dbUrl := os.Getenv("DATABASE_URL")
+	fmt.Printf("DATABSE URL is %s", dbUrl)
+	db, err := sql.Open("postgres", dbUrl)
+	if err != nil {
+		log.Fatalf("Error opening database: %q", err)
+	}
+	InitDb(db)
 	port, _ := strconv.Atoi(os.Args[1])
 	fmt.Printf("Starting server at Port %d", port)
 	http.HandleFunc("/", handler)
