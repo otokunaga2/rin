@@ -43,8 +43,8 @@ func lineHandler(w http.ResponseWriter, r *http.Request) {
 				id := message.ID
 				log.Print("Logging id :", id)
 				log.Print("Received From USER ID: ", event.Source.UserID)
-				replyMessage := event.Message.Text
-				if _, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(replyMessage)).Do(); err != nil {
+				replyMessage := linebot.NewTextMessage(message.Text)
+				if _, err = bot.ReplyMessage(event.ReplyToken, replyMessage).Do(); err != nil {
 					log.Print(err)
 				}
 			case *linebot.StickerMessage:
