@@ -9,13 +9,34 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
+
 )
 
 func InitDb(db *sql.DB) {
-	if _, err := db.Exec("CREATE TABLE IF NOT EXISTS user_utterances(utterance varchar(10000), recorded_at timestamp)"); err != nil {
+	if _, err := db.Exec("CREATE TABLE IF NOT EXISTS user_utterances(user_id varchar(64),utterance varchar(10000), recorded_at timestamp)"); err != nil {
 		log.Fatal(err)
 		return
 	}
+}
+func GetDBConnection() (*sql.DB, error) {
+	dbUrl := os.Getenv("DBURL")
+	db, err := sql.Open("postgres", dbUrl)
+	return db, err
+}
+func InsertDB(user_id string, text string, current time.Time) error {
+	db, err := GetDBConnection()
+	defer db.Close()
+	if err != nil {
+		log.Fatalf("Error opening database: %q", err)
+		return err
+	}
+	_, err2 := db.Exec("INSERT INTO user_utterances(user_id, utterance, recorded_at) values($1,$2, $3)", user_id, text, current)
+	if err2 != nil {
+		log.Fatal(err2)
+	}
+	return nil
+
 }
 func handler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hello world!\n")
@@ -26,6 +47,7 @@ func healthzHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func lineHandler(w http.ResponseWriter, r *http.Request) {
+	
 	bot, err := linebot.New(
 		os.Getenv("CHANNEL_SECRET"),
 		os.Getenv("CHANNEL_TOKEN"),
@@ -54,6 +76,10 @@ func lineHandler(w http.ResponseWriter, r *http.Request) {
 				if _, err = bot.ReplyMessage(event.ReplyToken, replyMessage).Do(); err != nil {
 					log.Print(err)
 				}
+				err2 := InsertDB(event.Source.UserID, message.Text, time.Now())
+				if err2 != nil{
+					log.Fatalf("Fail when insertion data %s", err2)
+				}
 			case *linebot.StickerMessage:
 				replyMessage := fmt.Sprintf(
 					"sticker id is %s, stickerResourceType is %s", message.StickerID, message.StickerResourceType)
@@ -66,17 +92,25 @@ func lineHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	dbUrl := os.Getenv("DATABASE_URL")
-	fmt.Printf("DATABSE URL is %s", dbUrl)
-	db, err := sql.Open("postgres", dbUrl)
-	if err != nil {
-		log.Fatalf("Error opening database: %q", err)
+	//host := os.Getenv("HOST")
+	//port := os.Getenv("PORT")
+	//user := os.Getenv("USER")
+	//password := os.Getenv("PASSWORD")
+	//dbname := os.Getenv("DB")
+	//..dbUrl := os.Getenv("DBURL")
+	//psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
+	//      "password=%s dbname=%s sslmode=disable",
+	//          host, port, user, password, dbname)
+	db, err := GetDBConnection()
+	if err != nil{
+		//log.Error("Fail to get db connection")
+		log.Fatalf("Fail when insertion data %s", err)
 	}
 	InitDb(db)
-	port, _ := strconv.Atoi(os.Args[1])
-	fmt.Printf("Starting server at Port %d", port)
+	serverPort, _ := strconv.Atoi(os.Args[1])
+	fmt.Printf("Starting server at Port %d", serverPort)
 	http.HandleFunc("/", handler)
 	http.HandleFunc("/healthz", healthzHandler)
 	http.HandleFunc("/callback", lineHandler)
-	http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
+	http.ListenAndServe(fmt.Sprintf(":%d", serverPort), nil)
 }
