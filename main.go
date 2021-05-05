@@ -20,7 +20,7 @@ func InitDb(db *sql.DB) {
 	}
 }
 func GetDBConnection() (*sql.DB, error) {
-	dbUrl := os.Getenv("DBURL")
+	dbUrl := os.Getenv("DATABASE_URL")
 	db, err := sql.Open("postgres", dbUrl)
 	return db, err
 }
