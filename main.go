@@ -10,7 +10,6 @@ import (
 	"os"
 	"strconv"
 	"time"
-
 )
 
 func InitDb(db *sql.DB) {
@@ -46,8 +45,14 @@ func healthzHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Currently system is running \n")
 }
 
+type BotMessageType int
+
+const (
+	ActiveListen BotMessageType = iota // ActiveListen == 0
+)
+
 func lineHandler(w http.ResponseWriter, r *http.Request) {
-	
+
 	bot, err := linebot.New(
 		os.Getenv("CHANNEL_SECRET"),
 		os.Getenv("CHANNEL_TOKEN"),
@@ -77,8 +82,13 @@ func lineHandler(w http.ResponseWriter, r *http.Request) {
 					log.Print(err)
 				}
 				err2 := InsertDB(event.Source.UserID, message.Text, time.Now())
-				if err2 != nil{
+				if err2 != nil {
 					log.Fatalf("Fail when insertion data %s", err2)
+				}
+				//sendWithStrategy(ActiveListen, bot, id)
+				_, err3 := bot.PushMessage(id, linebot.NewTextMessage("ほかにどんな面白いことがありましたか？")).Do()
+				if err3 != nil {
+					log.Fatalf("Fail to send message to %s", id)
 				}
 			case *linebot.StickerMessage:
 				replyMessage := fmt.Sprintf(
@@ -92,17 +102,8 @@ func lineHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	//host := os.Getenv("HOST")
-	//port := os.Getenv("PORT")
-	//user := os.Getenv("USER")
-	//password := os.Getenv("PASSWORD")
-	//dbname := os.Getenv("DB")
-	//..dbUrl := os.Getenv("DBURL")
-	//psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
-	//      "password=%s dbname=%s sslmode=disable",
-	//          host, port, user, password, dbname)
 	db, err := GetDBConnection()
-	if err != nil{
+	if err != nil {
 		//log.Error("Fail to get db connection")
 		log.Fatalf("Fail when insertion data %s", err)
 	}
