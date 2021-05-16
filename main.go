@@ -50,7 +50,16 @@ type BotMessageType int
 const (
 	ActiveListen BotMessageType = iota // ActiveListen == 0
 )
-//func SendMessageWithStrategy(message string, )
+
+func SendMessageWithStrategy(c BotMessageType, userId string, bot *linebot.Client) {
+	switch c {
+	case ActiveListen:
+		_, err := bot.PushMessage(userId, linebot.NewTextMessage("そうだったんですね")).Do()
+		if err != nil {
+			log.Fatalf("Fail to send message to %s", userId)
+		}
+	}
+}
 func lineHandler(w http.ResponseWriter, r *http.Request) {
 
 	bot, err := linebot.New(
@@ -85,11 +94,7 @@ func lineHandler(w http.ResponseWriter, r *http.Request) {
 				if err2 != nil {
 					log.Fatalf("Fail when insertion data %s", err2)
 				}
-				//sendWithStrategy(ActiveListen, bot, id)
-				_, err3 := bot.PushMessage(string(event.Source.UserID), linebot.NewTextMessage("ほかにどんな面白いことがありましたか？")).Do()
-				if err3 != nil {
-					log.Fatalf("Fail to send message to %s", id)
-				}
+				SendMessageWithStrategy(ActiveListen, string(event.Source.UserID), bot)
 			case *linebot.StickerMessage:
 				replyMessage := fmt.Sprintf(
 					"sticker id is %s, stickerResourceType is %s", message.StickerID, message.StickerResourceType)
