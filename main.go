@@ -50,7 +50,7 @@ type BotMessageType int
 const (
 	ActiveListen BotMessageType = iota // ActiveListen == 0
 )
-
+//func SendMessageWithStrategy(message string, )
 func lineHandler(w http.ResponseWriter, r *http.Request) {
 
 	bot, err := linebot.New(
@@ -86,7 +86,7 @@ func lineHandler(w http.ResponseWriter, r *http.Request) {
 					log.Fatalf("Fail when insertion data %s", err2)
 				}
 				//sendWithStrategy(ActiveListen, bot, id)
-				_, err3 := bot.PushMessage(id, linebot.NewTextMessage("ほかにどんな面白いことがありましたか？")).Do()
+				_, err3 := bot.PushMessage(string(event.Source.UserID), linebot.NewTextMessage("ほかにどんな面白いことがありましたか？")).Do()
 				if err3 != nil {
 					log.Fatalf("Fail to send message to %s", id)
 				}
