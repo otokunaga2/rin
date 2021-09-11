@@ -6,11 +6,11 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/line/line-bot-sdk-go/linebot"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"strconv"
 	"time"
-	"math/rand"
 )
 
 func InitDb(db *sql.DB) {
@@ -51,13 +51,15 @@ type BotMessageType int
 const (
 	ActiveListen BotMessageType = iota // ActiveListen == 0
 )
+
 var MESSAGE_LIST = [2]string{"そうだったんですね", "うん、うん"}
-func GenerateMessage() string{
-   rand.Seed(time.Now().UnixNano())
-   selected := rand.Intn(2)
-   fmt.Printf("Selected index %d \n", selected)
-   reply := MESSAGE_LIST[selected]
-   return reply
+
+func GenerateMessage() string {
+	rand.Seed(time.Now().UnixNano())
+	selected := rand.Intn(2)
+	fmt.Printf("Selected index %d \n", selected)
+	reply := MESSAGE_LIST[selected]
+	return reply
 }
 func SendMessageWithStrategy(c BotMessageType, userId string, bot *linebot.Client) {
 	reply := GenerateMessage()
@@ -94,11 +96,7 @@ func lineHandler(w http.ResponseWriter, r *http.Request) {
 			case *linebot.TextMessage:
 				id := message.ID
 				log.Print("Logging id :", id)
-				log.Print("Received From USER ID: ", event.Source.UserID)
-				replyMessage := linebot.NewTextMessage(message.Text)
-				if _, err = bot.ReplyMessage(event.ReplyToken, replyMessage).Do(); err != nil {
-					log.Print(err)
-				}
+				log.Printf("Received From USER ID: %s, Text: %s \n", event.Source.UserID, event.Message)
 				err2 := InsertDB(event.Source.UserID, message.Text, time.Now())
 				if err2 != nil {
 					log.Fatalf("Fail when insertion data %s", err2)
@@ -117,7 +115,7 @@ func lineHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	result := GenerateMessage()
-	fmt.Printf("Generated response %s \n",result)
+	fmt.Printf("Generated response %s \n", result)
 	db, err := GetDBConnection()
 	if err != nil {
 		//log.Error("Fail to get db connection")
