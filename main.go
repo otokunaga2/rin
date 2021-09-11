@@ -10,6 +10,7 @@ import (
 	"os"
 	"strconv"
 	"time"
+	"math/rand"
 )
 
 func InitDb(db *sql.DB) {
@@ -50,11 +51,19 @@ type BotMessageType int
 const (
 	ActiveListen BotMessageType = iota // ActiveListen == 0
 )
-
+var MESSAGE_LIST = [2]string{"そうだったんですね", "うん、うん"}
+func GenerateMessage() string{
+   rand.Seed(time.Now().UnixNano())
+   selected := rand.Intn(2)
+   fmt.Printf("Selected index %d \n", selected)
+   reply := MESSAGE_LIST[selected]
+   return reply
+}
 func SendMessageWithStrategy(c BotMessageType, userId string, bot *linebot.Client) {
+	reply := GenerateMessage()
 	switch c {
 	case ActiveListen:
-		_, err := bot.PushMessage(userId, linebot.NewTextMessage("そうだったんですね")).Do()
+		_, err := bot.PushMessage(userId, linebot.NewTextMessage(reply)).Do()
 		if err != nil {
 			log.Fatalf("Fail to send message to %s", userId)
 		}
@@ -107,6 +116,8 @@ func lineHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	result := GenerateMessage()
+	fmt.Printf("Generated response %s \n",result)
 	db, err := GetDBConnection()
 	if err != nil {
 		//log.Error("Fail to get db connection")
